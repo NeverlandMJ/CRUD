@@ -21,11 +21,11 @@ func NewService(db *sql.DB) *Service {
 }
 
 type Customer struct {
-	ID 		int64 	`json: "id"`
-	Name 		string 	`json: "name"`
-	Phone 	string 	`json: "phone"`
-	Active 	bool 		`json: "active"`
-	Created 	time.Time 	`json: "created"`
+	ID      int64     `json:"id"`
+	Name    string    `json:"name"`
+	Phone   string    `json:"phone"`
+	Active  bool      `json:"active"`
+	Created time.Time `json:"created"`
 }
 
 func (s *Service) ById(ctx context.Context, id int64) (*Customer, error){
