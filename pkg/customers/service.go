@@ -50,7 +50,7 @@ func (s *Service) All(ctx context.Context) ([]Customer, error) {
 	items := []Customer{}
 
 	rows, err := s.db.QueryContext(ctx, `
-		SELECT id, name, phone, active, created FROM customers 
+		SELECT *FROM customers 
 	`)
 	if errors.Is(err, sql.ErrNoRows){
 		return nil, ErrNotFound
@@ -69,7 +69,13 @@ func (s *Service) All(ctx context.Context) ([]Customer, error) {
 
 	for rows.Next() {
 		item := Customer{}
-		err = rows.Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
+		err = rows.Scan(
+			&item.ID, 
+			&item.Name, 
+			&item.Phone, 
+			&item.Active, 
+			&item.Created,
+		)
 		if err != nil {
 			log.Print(err)
 			return nil, ErrInternal
@@ -109,7 +115,12 @@ func (s *Service) GetAllActive(ctx context.Context) ([]Customer, error) {
 
 	for rows.Next() {
 		item := Customer{}
-		err = rows.Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
+		err = rows.Scan(
+			&item.ID, 
+			&item.Name, 
+			&item.Phone, 
+			&item.Active, 
+			&item.Created)
 		if err != nil {
 			log.Print(err)
 			return nil, ErrInternal
