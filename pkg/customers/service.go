@@ -46,50 +46,32 @@ func (s *Service) ById(ctx context.Context, id int64) (*Customer, error){
 	return item, nil
 }
 
-func (s *Service) All(ctx context.Context) ([]Customer, error) {
-	items := []Customer{}
+func (s *Service) All(ctx context.Context) (cs []*Customer, err error) {
 
-	rows, err := s.db.QueryContext(ctx, `
-		SELECT *FROM customers 
-	`)
-	if errors.Is(err, sql.ErrNoRows){
-		return nil, ErrNotFound
-	}
+	sqlStatement := `select * from customers`
 
+	rows, err := s.db.QueryContext(ctx, sqlStatement)
 	if err != nil {
-		log.Print(err)
-		return nil, ErrInternal
+		return nil, err
 	}
-
-	defer func() {
-		if cerr := rows.Close(); cerr != nil {
-			log.Print(cerr)
-		}
-	}()
+	defer rows.Close()
 
 	for rows.Next() {
-		item := Customer{}
-		err = rows.Scan(
-			&item.ID, 
-			&item.Name, 
-			&item.Phone, 
-			&item.Active, 
+		item := &Customer{}
+		err := rows.Scan(
+			&item.ID,
+			&item.Name,
+			&item.Phone,
+			&item.Active,
 			&item.Created,
 		)
 		if err != nil {
-			log.Print(err)
-			return nil, ErrInternal
+			log.Println(err)
 		}
-
-		items = append(items, item)
+		cs = append(cs, item)
 	}
 
-	err = rows.Err()
-	if err != nil {
-		log.Print(err)
-		return nil, ErrNotFound
-	}
-	return items, nil
+	return cs, nil
 }
 
 func (s *Service) GetAllActive(ctx context.Context) ([]Customer, error) {
