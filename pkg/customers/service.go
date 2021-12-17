@@ -119,42 +119,41 @@ func (s *Service) GetAllActive(ctx context.Context) ([]Customer, error) {
 	return items, nil
 }
 
-func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, err error) {
-
+func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, err error)  {
 	item := &Customer{}
 
-	if customer.ID == 0 {
-		sqlStatement := `insert into customers(name, phone) values($1, $2) returning *`
-		err = s.db.QueryRowContext(ctx, sqlStatement, customer.Name, customer.Phone).Scan(
-			&item.ID,
-			&item.Name,
-			&item.Phone,
-			&item.Active,
+	if customer.ID == 0{
+		err = s.db.QueryRowContext(ctx, `
+			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING *
+		`, customer.Name, customer.Phone).Scan(
+			&item.ID, 
+			&item.Name, 
+			&item.Phone, 
+			&item.Active, 
 			&item.Created)
 	} else {
-		sqlStatement := `update customers set name=$1, phone=$2 where id=$3 returning *`
-		err = s.db.QueryRowContext(ctx, sqlStatement, customer.Name, customer.Phone, customer.ID).Scan(
-			&item.ID,
-			&item.Name,
-			&item.Phone,
-			&item.Active,
+		err = s.db.QueryRowContext(ctx, `
+			UPDATE customers SET name = $1, phone = $2 WHERE  id = $3 RETURNING *
+		`, customer.Name, customer.Phone, customer.ID).Scan(
+			&item.ID, 
+			&item.Name, 
+			&item.Phone, 
+			&item.Active, 
 			&item.Created)
 	}
-
 	if err != nil {
 		log.Print(err)
 		return nil, ErrInternal
 	}
 	return item, nil
-
 }
 
 func (s *Service) RemoveById(ctx context.Context, id int64) (*Customer,  error) {
 	item := &Customer{}
 
 	err := s.db.QueryRowContext(ctx, `
-	  	DELET customers WHERE id = $1 RETURNING *
-	`).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
+	  	DELETE customers WHERE id = $1 RETURNING *
+	`, id).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
 	
 	if errors.Is(err, sql.ErrNoRows){
 		return nil, ErrNotFound
@@ -173,7 +172,7 @@ func (s *Service) BlockById(ctx context.Context, id int64) (*Customer, error) {
 
 	err := s.db.QueryRowContext(ctx, `
 		UPDATE customers SET active = false WHERE id = $1 RETURNING *
-	`).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
+	`, id).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
 
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
@@ -192,7 +191,7 @@ func (s *Service) UnblockById(ctx context.Context, id int64) (*Customer, error) 
 
 	err := s.db.QueryRowContext(ctx, `
 		UPDATE customers SET active = true WHERE id = $1 RETURNING *
-	`).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
+	`, id).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
 
 	if err == sql.ErrNoRows {
 		return nil, ErrNotFound
