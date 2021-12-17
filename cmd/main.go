@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/NeverlandMJ/CRUD/cmd/server/app"
+	"github.com/NeverlandMJ/CRUD/cmd/app"
 	"github.com/NeverlandMJ/CRUD/pkg/customers"
 )
 
