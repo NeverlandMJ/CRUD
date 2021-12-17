@@ -124,7 +124,7 @@ func (s *Service) Save(ctx context.Context, cutomer *Customer) (c *Customer, err
 
 	if cutomer.ID == 0{
 		err = s.db.QueryRowContext(ctx, `
-			INSERT INTO customers(phone, name) VALUES ($1, $2) RETURNING *
+			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING *
 		`).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
 	} else {
 		err = s.db.QueryRowContext(ctx, `
