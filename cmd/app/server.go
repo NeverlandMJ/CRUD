@@ -3,10 +3,10 @@ package app
 import (
 	"encoding/json"
 	"errors"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-	
 
 	"github.com/NeverlandMJ/CRUD/pkg/customers"
 	"github.com/gorilla/mux"
@@ -32,13 +32,13 @@ const (
 )
 
 // Vars returns the route variable for the current request, if any
-func Vars(r *http.Request) map[string]string {
-	if rv := r.Context().Value("id"); rv != nil {
-		return rv.(map[string]string)
-	}
+// func Vars(r *http.Request) map[string]string {
+// 	if rv := r.Context().Value(varKeys); rv != nil {
+// 		return rv.(map[string]string)
+// 	}
 
-	return nil
-}
+// 	return nil
+// }
 
 
 //Init inisializes server (regetres all Handlers)
@@ -130,15 +130,16 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	//idParam := r.URL.Query().Get("id")
-	//idParam, ok := mux.Vars(r)["id"]
+	params := mux.Vars(r)
+	idParam := params["id"]
+	fmt.Println(idParam)
 	
 	// if !ok{
 	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	// 	return
 	// }
-	vars := mux.Vars(r)["id"]
-	//idParam, _ := strconv.Atoi(vars["id"])
-	id, err := strconv.ParseInt(vars, 10, 64)
+	
+	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil{
 		log.Print(err)
 		return
