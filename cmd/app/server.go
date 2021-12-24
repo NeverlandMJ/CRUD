@@ -216,9 +216,9 @@ func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	
-	
+		
 	NewItem, err := s.customersSvc.Save(r.Context(), item)
+	
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
