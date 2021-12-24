@@ -46,7 +46,7 @@ func (s *Server) Init() {
 	s.mux.HandleFunc("/customers", s.handleGetAllCustomer).Methods(GET)
 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
-	s.mux.HandleFunc("customers", s.handleSave).Methods(POST)
+	s.mux.HandleFunc("customers", s.handleSaveCustomer).Methods(POST)
 	s.mux.HandleFunc("/customers/{id}", s.handleRemoveById).Methods(DELETE)
 	
 	s.mux.HandleFunc("/customers/{id}/block", s.handleUnblockById).Methods(POST)
@@ -208,29 +208,16 @@ func (s *Server) handleGetAllActiveCustomers(w http.ResponseWriter, r *http.Requ
 	
 }
 
-func (s *Server) handleSave(w http.ResponseWriter, r *http.Request){
-	id := r.FormValue("id")
-	name := r.FormValue("name")
-	phone := r.FormValue("phone")
-
-	newId, err := strconv.ParseInt(id, 10, 64)
-	if err != nil {
+func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
+	var item *customers.Customer
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil{
+		log.Print(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-
-	if phone == "" && name == ""{
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-
-
-	item := &customers.Customer{
-		ID: newId,
-		Name: name,
-		Phone: phone,
-	}
-
+	
+	
 	NewItem, err := s.customersSvc.Save(r.Context(), item)
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
