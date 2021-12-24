@@ -130,14 +130,15 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	//idParam := r.URL.Query().Get("id")
+	//idParam, ok := mux.Vars(r)["id"]
 	
-	idParam, ok := mux.Vars(r)["id"]
-	
-	if !ok{
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-	id, err := strconv.ParseInt(idParam, 10, 64)
+	// if !ok{
+	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	// 	return
+	// }
+	vars := mux.Vars(r)
+	//idParam, _ := strconv.Atoi(vars["id"])
+	id, err := strconv.ParseInt(vars["id"], 10, 64)
 	if err != nil{
 		log.Print(err)
 		return
