@@ -31,27 +31,27 @@ type Customer struct {
 	Created time.Time `json:"created"`
 }
 
-// func (s *Service) ByID(ctx context.Context, id int64) (*Customer, error) {
-// 	item := &Customer{}
+func (s *Service) ByID(ctx context.Context, id int64) (*Customer, error) {
+	item := &Customer{}
 
-// 	sqlStatement := `select * from customers where id=$1`
-// 	err := s.pool.QueryRow(ctx, sqlStatement, id).Scan(
-// 		&item.ID,
-// 		&item.Name,
-// 		&item.Phone,
-// 		&item.Active,
-// 		&item.Created)
+	sqlStatement := `select * from customers where id=$1`
+	err := s.pool.QueryRow(ctx, sqlStatement, id).Scan(
+		&item.ID,
+		&item.Name,
+		&item.Phone,
+		&item.Active,
+		&item.Created)
 
-// 		if errors.Is(err, pgx.ErrNoRows){
-// 			return nil, ErrNotFound
-// 		}
-// 	if err != nil {
-// 		log.Print(err)
-// 		return nil, ErrInternal
-// 	}
-// 	return item, nil
+		if errors.Is(err, pgx.ErrNoRows){
+			return nil, ErrNotFound
+		}
+	if err != nil {
+		log.Print(err)
+		return nil, ErrInternal
+	}
+	return item, nil
 
-// }
+}
 
 func (s *Service) All(ctx context.Context) (cs []*Customer, err error) {
 
