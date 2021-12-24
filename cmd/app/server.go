@@ -31,15 +31,6 @@ const (
 	DELETE = "DELETE"
 )
 
-// Vars returns the route variable for the current request, if any
-// func Vars(r *http.Request) map[string]string {
-// 	if rv := r.Context().Value(varKeys); rv != nil {
-// 		return rv.(map[string]string)
-// 	}
-
-// 	return nil
-// }
-
 
 //Init inisializes server (regetres all Handlers)
 // func (s *Server) Init()  {
@@ -130,14 +121,13 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	//idParam := r.URL.Query().Get("id")
-	params := mux.Vars(r)
-	idParam := params["id"]
-	fmt.Println(idParam)
+	idParam, ok := mux.Vars(r)["id"]
 	
-	// if !ok{
-	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-	// 	return
-	// }
+	if !ok{
+		log.Print("missing id")
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 	
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil{
