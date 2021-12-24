@@ -11,6 +11,7 @@ import (
 
 	"github.com/NeverlandMJ/CRUD/cmd/app"
 	"github.com/NeverlandMJ/CRUD/pkg/customers"
+	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"go.uber.org/dig"
@@ -30,7 +31,7 @@ func main() {
 func execute(host, port, dsn string) (err error){
 	deps := []interface{}{
 		app.NewServer,
-		http.NewServeMux,
+		mux.NewRouter,
 		func() (*pgxpool.Pool, error){
 			ctx, _ := context.WithTimeout(context.Background(), time.Second*5)
 			return pgxpool.Connect(ctx, dsn)
