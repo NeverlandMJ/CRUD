@@ -136,9 +136,9 @@ func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 	// 	return
 	// }
-	vars := mux.Vars(r)
+	vars := mux.Vars(r)["id"]
 	//idParam, _ := strconv.Atoi(vars["id"])
-	id, err := strconv.ParseInt(vars["id"], 10, 64)
+	id, err := strconv.ParseInt(vars, 10, 64)
 	if err != nil{
 		log.Print(err)
 		return
