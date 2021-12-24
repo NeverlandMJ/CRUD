@@ -32,13 +32,13 @@ const (
 )
 
 // Vars returns the route variable for the current request, if any
-// func Vars(r *http.Request, varsKey string) map[string]string {
-// 	if rv := r.Context().Value(varsKey); rv != nil {
-// 		return rv.(map[string]string)
-// 	}
+func Vars(r *http.Request) map[string]string {
+	if rv := r.Context().Value("id"); rv != nil {
+		return rv.(map[string]string)
+	}
 
-// 	return nil
-// }
+	return nil
+}
 
 
 //Init inisializes server (regetres all Handlers)
@@ -131,12 +131,12 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	//idParam := r.URL.Query().Get("id")
 	
-	idParam := strings.TrimPrefix(r.URL.Path, "/customers/")
+	idParam, ok := mux.Vars(r)["id"]
 	
-	// if !ok{
-	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-	// 	return
-	// }
+	if !ok{
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil{
 		log.Print(err)
