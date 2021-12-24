@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
+	
 
 	"github.com/NeverlandMJ/CRUD/pkg/customers"
 	"github.com/gorilla/mux"
