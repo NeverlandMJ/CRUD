@@ -120,17 +120,15 @@ func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, er
 			&item.ID,
 			&item.Name,
 			&item.Phone,
-			&item.Active,
-			&item.Created)
+			)
 	} else {
 		sqlStatement := `update customers set name=$1, phone=$2 where id=$3 returning *`
 		err = s.pool.QueryRow(ctx, sqlStatement, customer.Name, customer.Phone, customer.ID).Scan(
 			&item.ID,
 			&item.Name,
 			&item.Phone,
-			&item.Active,
-			&item.Created)
-	}
+			)
+		}
 
 	if err != nil {
 		log.Print(err)
