@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/NeverlandMJ/CRUD/pkg/customers"
 	"github.com/gorilla/mux"
@@ -129,13 +130,13 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	//idParam := r.URL.Query().Get("id")
-	vars := mux.Vars(r)
-
-	idParam, ok := vars["id"]
-	if !ok{
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
+	
+	idParam := strings.TrimPrefix(r.URL.Path, "/customers/{id}")
+	
+	// if !ok{
+	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	// 	return
+	// }
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil{
 		log.Print(err)
