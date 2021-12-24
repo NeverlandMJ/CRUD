@@ -44,7 +44,7 @@ const (
 
 func (s *Server) Init() {
 	s.mux.HandleFunc("/customers", s.handleGetAllCustomer).Methods(GET)
-	s.mux.HandleFunc("/customers/:id", s.handleGetCustomerByID).Methods(POST)
+	//s.mux.HandleFunc("/customers/:id", s.handleGetCustomerByID).Methods(POST)
 	s.mux.HandleFunc("customers", s.handleSave).Methods(POST)
 	s.mux.HandleFunc("/customers/{id}", s.handleRemoveById).Methods(DELETE)
 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
@@ -118,41 +118,41 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 	}
 }
 
-func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
-	//idParam := r.URL.Query().Get("id")
-	params := mux.Vars(r)
-	idParam := params["id"]
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil{
-		log.Print(err)
-		return
-	}
+// func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
+// 	//idParam := r.URL.Query().Get("id")
+// 	params := mux.Vars(r)
+// 	idParam := params["id"]
+// 	id, err := strconv.ParseInt(idParam, 10, 64)
+// 	if err != nil{
+// 		log.Print(err)
+// 		return
+// 	}
 
-	item, err := s.customersSvc.ByID(r.Context(), id)
-	if errors.Is(err, customers.ErrNotFound){
-		log.Print(err)
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-	if err != nil {
-		log.Print(err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
+// 	item, err := s.customersSvc.ByID(r.Context(), id)
+// 	if errors.Is(err, customers.ErrNotFound){
+// 		log.Print(err)
+// 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+// 		return
+// 	}
+// 	if err != nil {
+// 		log.Print(err)
+// 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+// 		return
+// 	}
 
-	data, err := json.Marshal(item)
-	if err != nil {
-		log.Print(err)
-		return
-	}
+// 	data, err := json.Marshal(item)
+// 	if err != nil {
+// 		log.Print(err)
+// 		return
+// 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-}  
+// 	w.Header().Set("Content-Type", "application/json")
+// 	_, err = w.Write(data)
+// 	if err != nil {
+// 		log.Print(err)
+// 		return
+// 	}
+// }  
 
 func (s *Server) handleGetAllCustomer(w http.ResponseWriter, r *http.Request)  {
 		
