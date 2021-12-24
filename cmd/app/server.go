@@ -131,7 +131,7 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	//idParam := r.URL.Query().Get("id")
 	
-	idParam := strings.TrimPrefix(r.URL.Path, "/customers/{id}")
+	idParam := strings.TrimPrefix(r.URL.Path, "/customers/")
 	
 	// if !ok{
 	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
