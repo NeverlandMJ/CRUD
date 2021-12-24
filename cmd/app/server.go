@@ -120,14 +120,8 @@ func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
 
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 	//idParam := r.URL.Query().Get("id")
-	idParam, ok := mux.Vars(r)["id"]
-	
-	if !ok{
-		log.Print("missing id")
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-	
+	params := mux.Vars(r)
+	idParam := params["id"]
 	id, err := strconv.ParseInt(idParam, 10, 64)
 	if err != nil{
 		log.Print(err)
@@ -136,10 +130,12 @@ func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 
 	item, err := s.customersSvc.ByID(r.Context(), id)
 	if errors.Is(err, customers.ErrNotFound){
+		log.Print(err)
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
 	}
 	if err != nil {
+		log.Print(err)
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}

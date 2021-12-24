@@ -1,5 +1,5 @@
 ####
 
-GET  http://localhost:9999/cutomers:1
+GET  http://localhost:9999/cutomers/1
 Content-Type: application/json
 
