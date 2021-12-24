@@ -81,46 +81,34 @@ func (s *Service) All(ctx context.Context) (cs []*Customer, err error) {
 	return cs, nil
 }
 
-func (s *Service) GetAllActive(ctx context.Context) ([]Customer, error) {
-	items := []Customer{}
+func (s *Service) AllActive(ctx context.Context) (cs []*Customer, err error) {
 
-	rows, err := s.pool.Query(ctx, `
-		SELECT id, name, phone, active, created FROM customers WHERE active
-	`)
-	if errors.Is(err, pgx.ErrNoRows){
-		return nil, ErrNotFound
-	}
+	sqlStatement := `select * from customers where active=true`
 
+	rows, err := s.pool.Query(ctx, sqlStatement)
 	if err != nil {
-		log.Print(err)
-		return nil, ErrInternal
+		return nil, err
 	}
-
 	defer rows.Close()
 
 	for rows.Next() {
-		item := Customer{}
-		err = rows.Scan(
-			&item.ID, 
-			&item.Name, 
-			&item.Phone, 
-			&item.Active, 
-			&item.Created)
+		item := &Customer{}
+		err := rows.Scan(
+			&item.ID,
+			&item.Name,
+			&item.Phone,
+			&item.Active,
+			&item.Created,
+		)
 		if err != nil {
-			log.Print(err)
-			return nil, ErrInternal
+			log.Println(err)
 		}
-
-		items = append(items, item)
+		cs = append(cs, item)
 	}
 
-	err = rows.Err()
-	if err != nil {
-		log.Print(err)
-		return nil, ErrNotFound
-	}
-	return items, nil
+	return cs, nil
 }
+
 
 func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, err error)  {
 	item := &Customer{}

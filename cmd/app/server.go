@@ -183,7 +183,7 @@ func (s *Server) handleGetAllCustomer(w http.ResponseWriter, r *http.Request)  {
 }
 
 func (s *Server) handleGetAllActiveCustomers(w http.ResponseWriter, r *http.Request)  {
-	items, err := s.customersSvc.GetAllActive(r.Context())
+	items, err := s.customersSvc.AllActive(r.Context())
 	if errors.Is(err, customers.ErrNotFound){
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
