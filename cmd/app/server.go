@@ -165,13 +165,13 @@ func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 }  
 
 func (s *Server) handleGetAllCustomer(w http.ResponseWriter, r *http.Request)  {
-	var item *customers.Customer
-	err := json.NewDecoder(r.Body).Decode(&item)
-	if err != nil {
-		log.Print(err)
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
+	// var item *customers.Customer
+	// err := json.NewDecoder(r.Body).Decode(&item)
+	// if err != nil {
+	// 	log.Print(err)
+	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+	// 	return
+	// }
 	
 	items, err := s.customersSvc.All(r.Context())
 	if errors.Is(err, customers.ErrNotFound){
