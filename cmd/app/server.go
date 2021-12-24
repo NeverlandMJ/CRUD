@@ -134,7 +134,7 @@ func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	item, err := s.customersSvc.ById(r.Context(), id)
+	item, err := s.customersSvc.ByID(r.Context(), id)
 	if errors.Is(err, customers.ErrNotFound){
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
 		return
