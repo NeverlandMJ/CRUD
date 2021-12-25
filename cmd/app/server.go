@@ -224,26 +224,48 @@ func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-		
-	NewItem, err := s.customersSvc.Save(r.Context(), item)
+	if item.ID == 0{
+		customer, err := s.customersSvc.Save(r.Context(), item)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
 	
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
+		data, err := json.Marshal(customer)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	
+		w.Header().Set("Content-Type", "application/json")
+		_, err = w.Write(data)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	} else {
+		customer, err := s.customersSvc.Update(r.Context(), item)
+		if err != nil {
+			http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+			return
+		}
+	
+		data, err := json.Marshal(customer)
+		if err != nil {
+			log.Print(err)
+			return
+		}
+	
+		w.Header().Set("Content-Type", "application/json")
+		_, err = w.Write(data)
+		if err != nil {
+			log.Print(err)
+			return
+		}
 	}
-
-	data, err := json.Marshal(NewItem)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
-	if err != nil {
-		log.Print(err)
-		return
-	}
+	
+	
+	
 }
 
 func (s *Server) handleRemoveById(w http.ResponseWriter, r *http.Request)  {
