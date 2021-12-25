@@ -24,11 +24,11 @@ func NewService(pool *pgxpool.Pool) *Service {
 }
 
 type Customer struct {
-	ID      int64     
-	Name    string    
-	Phone   string    
-	Active  bool      
-	Created time.Time 
+	ID      int64     `json:"id"`
+	Name    string    `json:"name"`
+	Phone   string    `json:"phone"`
+	Active  bool      `json:"active"`
+	Created time.Time `json:"created"`
 }
 
 func (s *Service) ByID(ctx context.Context, id int64) (*Customer, error) {
