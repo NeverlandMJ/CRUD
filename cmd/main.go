@@ -37,9 +37,7 @@ func execute(host, port, dsn string) (err error){
 			return pgxpool.Connect(ctx, dsn)
 		},
 		customers.NewService,
-		// manager.NewService,
-		// products.NewService,
-		// sales.NewService,
+		
 		func(server *app.Server) *http.Server{
 			return &http.Server{
 				Addr: net.JoinHostPort(host, port),

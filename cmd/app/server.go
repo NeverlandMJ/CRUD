@@ -14,11 +14,11 @@ import (
 
 type Server struct {
 	mux 			*mux.Router
-	customersSvc 	*customers.Service
+	customerSvc 	*customers.Service
 }
 
-func NewServer (mux *mux.Router, customersSvc *customers.Service) *Server {
-	return &Server{mux: mux, customersSvc: customersSvc}
+func NewServer (mux *mux.Router, customerSvc *customers.Service) *Server {
+	return &Server{mux: mux, customerSvc: customerSvc}
 }
 
 func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request){
@@ -33,258 +33,226 @@ const (
 
 
 //Init inisializes server (regetres all Handlers)
-// func (s *Server) Init()  {
-// 	s.mux.HandleFunc("/customers.getById", s.handleGetCustomerByID)
-// 	s.mux.HandleFunc("/customers.getAll", s.handleGetAllCustomer)
-// 	s.mux.HandleFunc("/customers.getAllActive", s.handleGetAllActiveCustomers)
-// 	s.mux.HandleFunc("/customers.save", s.handleSave)
-// 	s.mux.HandleFunc("/customers.removeById", s.handleRemoveById)
-// 	s.mux.HandleFunc("/customers.blockById", s.handleBlockById)
-// 	s.mux.HandleFunc("/customers.unblockById", s.handleUnblockById)
+
+// func (s *Server) Init() {
+// 	s.mux.HandleFunc("customers", s.handleSaveCustomer).Methods(POST)
+// 	s.mux.HandleFunc("/customers/{id}", s.handleRemoveById).Methods(DELETE)
+// 	s.mux.HandleFunc("/customers/{id}/block", s.handleUnblockById).Methods(POST)
+// 	s.mux.HandleFunc("/cutomers/{id}/block", s.handleBlockById).Methods(DELETE)
+// 	s.mux.HandleFunc("/customers", s.handleGetAllCustomer).Methods(GET)
+// 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
+// 	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
 // }
 
+
+//Init ...
 func (s *Server) Init() {
-	s.mux.HandleFunc("customers", s.handleSaveCustomer).Methods(POST)
-	s.mux.HandleFunc("/customers/{id}", s.handleRemoveById).Methods(DELETE)
-	s.mux.HandleFunc("/customers/{id}/block", s.handleUnblockById).Methods(POST)
-	s.mux.HandleFunc("/cutomers/{id}/block", s.handleBlockById).Methods(DELETE)
-	s.mux.HandleFunc("/customers", s.handleGetAllCustomer).Methods(GET)
-	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
+	s.mux.HandleFunc("/customers", s.handleGetAllCustomers).Methods(GET)
+	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
+	s.mux.HandleFunc("/customers/{id}/block", s.handleBlockByID).Methods(POST)
+	s.mux.HandleFunc("/customers/{id}/block", s.handleUnBlockByID).Methods(DELETE)
+	s.mux.HandleFunc("/customers/{id}", s.handleDelete).Methods(DELETE)
+	s.mux.HandleFunc("/customers", s.handleSave).Methods(POST)
 }
 
+// хендлер метод для извлечения всех клиентов
+func (s *Server) handleGetAllCustomers(w http.ResponseWriter, r *http.Request) {
 
-
-func (s *Server) handleBlockById(w http.ResponseWriter, r *http.Request){
-	//idPharm := r.URL.Query().Get("id")
-
-	idParam, ok := mux.Vars(r)["id"]
-	if !ok {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil{
-		log.Print(err)
-		return
-	}
-
-	item, err := s.customersSvc.BlockById(r.Context(), id)
-	if errors.Is(err, customers.ErrNotFound){
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
+	items, err := s.customerSvc.All(r.Context())
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	data, err := json.Marshal(item)
-	if err != nil {
-		log.Print(err)
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
-	if err != nil {
-		log.Print(err)
-		return
-	}
+	respondJSON(w, items)
 }
 
-func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
-	//idPharm := r.URL.Query().Get("id")
+// хендлер метод для извлечения всех активных клиентов
+func (s *Server) handleGetAllActiveCustomers(w http.ResponseWriter, r *http.Request) {
 
-	idParam, ok := mux.Vars(r)["id"]
-	if !ok {
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil{
-		log.Print(err)
-		return
-	}
-	item, err := s.customersSvc.UnblockById(r.Context(), id)
-	if errors.Is(err, customers.ErrNotFound){
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
+	items, err := s.customerSvc.AllActive(r.Context())
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	data, err := json.Marshal(item)
-	if err != nil {
-		log.Print(err)
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusInternalServerError, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
-	if err != nil {
-		log.Print(err)
-		return
-	}
+	respondJSON(w, items)
 }
 
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
-	//idParam := r.URL.Query().Get("id")
-	idParam, ok := mux.Vars(r)["id"]
+	//получаем ID из параметра запроса
+	idP, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil{
-		log.Print(err)
-		return
-	}
-
-	item, err := s.customersSvc.ByID(r.Context(), id)
-	if errors.Is(err, customers.ErrNotFound){
-		log.Print(err)
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-	if err != nil {
-		log.Print(err)
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-
-	data, err := json.Marshal(item)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-}  
-
-func (s *Server) handleGetAllCustomer(w http.ResponseWriter, r *http.Request)  {
 		
-	items, err := s.customersSvc.All(r.Context())
-	if errors.Is(err, customers.ErrNotFound){
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
+	// переобразуем его в число
+	id, err := strconv.ParseInt(idP, 10, 64)
+	//если получили ошибку то отвечаем с ошибкой
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	data, err := json.Marshal(items)
-	if err != nil {
-		log.Print(err)
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusBadRequest, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
-	if err != nil {
-		log.Print(err)
+	//получаем баннер из сервиса
+	item, err := s.customerSvc.ByID(r.Context(), id)
+
+	if errors.Is(err, customers.ErrNotFound) {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusNotFound, err)
 		return
 	}
+
+	//если получили ошибку то отвечаем с ошибкой
+	if err != nil {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusInternalServerError, err)
+		return
+	}
+	//вызываем функцию для ответа в формате JSON
+	respondJSON(w, item)
 }
 
-func (s *Server) handleGetAllActiveCustomers(w http.ResponseWriter, r *http.Request)  {
-	items, err := s.customersSvc.AllActive(r.Context())
-	if errors.Is(err, customers.ErrNotFound){
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	data, err := json.Marshal(items)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
-	if err != nil {
-		log.Print(err)
-		return
-	}
-	
-}
-
-func (s *Server) handleRemoveById(w http.ResponseWriter, r *http.Request)  {
-	//idPharm := r.URL.Query().Get("id")
-	idParam, ok := mux.Vars(r)["id"]
+func (s *Server) handleBlockByID(w http.ResponseWriter, r *http.Request) {
+	//получаем ID из параметра запроса
+	idP, ok := mux.Vars(r)["id"]
 	if !ok {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-	id, err := strconv.ParseInt(idParam, 10, 64)
-	if err != nil{
-		log.Print(err)
+
+	// переобразуем его в число
+	id, err := strconv.ParseInt(idP, 10, 64)
+	//если получили ошибку то отвечаем с ошибкой
+	if err != nil {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusBadRequest, err)
 		return
 	}
 
-	item, err := s.customersSvc.RemoveById(r.Context(), id)
-	if errors.Is(err, customers.ErrNotFound){
-		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
-		return
-	}
-	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
-		return
-	}
-	data, err := json.Marshal(item)
-	if err != nil {
-		log.Print(err)
+	//получаем баннер из сервиса
+	item, err := s.customerSvc.ChangeActive(r.Context(), id, false)
+
+	if errors.Is(err, customers.ErrNotFound) {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusNotFound, err)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json")
-	_, err = w.Write(data)
+	//если получили ошибку то отвечаем с ошибкой
 	if err != nil {
-		log.Print(err)
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusInternalServerError, err)
 		return
 	}
+	//вызываем функцию для ответа в формате JSON
+	respondJSON(w, item)
 }
 
-func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
+func (s *Server) handleUnBlockByID(w http.ResponseWriter, r *http.Request) {
+	//получаем ID из параметра запроса
+	idP, ok := mux.Vars(r)["id"]
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	// переобразуем его в число
+	id, err := strconv.ParseInt(idP, 10, 64)
+	//если получили ошибку то отвечаем с ошибкой
+	if err != nil {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusBadRequest, err)
+		return
+	}
+
+	//получаем баннер из сервиса
+	item, err := s.customerSvc.ChangeActive(r.Context(), id, true)
+
+	if errors.Is(err, customers.ErrNotFound) {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusNotFound, err)
+		return
+	}
+
+	//если получили ошибку то отвечаем с ошибкой
+	if err != nil {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusInternalServerError, err)
+		return
+	}
+	//вызываем функцию для ответа в формате JSON
+	respondJSON(w, item)
+}
+
+func (s *Server) handleDelete(w http.ResponseWriter, r *http.Request) {
+	//получаем ID из параметра запроса
+	idP, ok := mux.Vars(r)["id"]
+	if !ok {
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+	// переобразуем его в число
+	id, err := strconv.ParseInt(idP, 10, 64)
+	//если получили ошибку то отвечаем с ошибкой
+	if err != nil {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusBadRequest, err)
+		return
+	}
+
+	//получаем баннер из сервиса
+	item, err := s.customerSvc.Delete(r.Context(), id)
+
+	if errors.Is(err, customers.ErrNotFound) {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusNotFound, err)
+		return
+	}
+
+	//если получили ошибку то отвечаем с ошибкой
+	if err != nil {
+		//вызываем фукцию для ответа с ошибкой
+		errorWriter(w, http.StatusInternalServerError, err)
+		return
+	}
+	//вызываем функцию для ответа в формате JSON
+	respondJSON(w, item)
+}
+
+func (s *Server) handleSave(w http.ResponseWriter, r *http.Request) {
 	var item *customers.Customer
 	err := json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
 		log.Print(err)
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
-	}	
-	
-	// b, err := ioutil.ReadAll(r.Body)
-	// defer r.Body.Close()
-	// if err != nil {
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
-
-	// var item *customers.Customer
-	// err = json.Unmarshal(b, &item)
-	// if err != nil {
-	// 	http.Error(w, err.Error(), 500)
-	// 	return
-	// }
-	item, err = s.customersSvc.Save(r.Context(), item.ID, item.Phone, item.Name)
+	}
+	customer, err := s.customerSvc.Save(r.Context(), item)
 
 	if err != nil {
-		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		errorWriter(w, http.StatusInternalServerError, err)
 		return
 	}
+	respondJSON(w, customer)
+}
 
-	data, err := json.Marshal(item)
+func errorWriter(w http.ResponseWriter, httpSts int, err error) {
+	log.Print(err)
+	http.Error(w, http.StatusText(httpSts), httpSts)
+}
+func respondJSON(w http.ResponseWriter, iData interface{}) {
+
+	data, err := json.Marshal(iData)
+
 	if err != nil {
-		log.Print(err)
+		errorWriter(w, http.StatusInternalServerError, err)
 		return
 	}
 
@@ -292,7 +260,6 @@ func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
 	_, err = w.Write(data)
 	if err != nil {
 		log.Print(err)
-		return
 	}
 }
 
