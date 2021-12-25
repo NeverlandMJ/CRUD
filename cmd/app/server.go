@@ -3,7 +3,7 @@ package app
 import (
 	"encoding/json"
 	"errors"
-	"io/ioutil"
+	//"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -254,28 +254,28 @@ func (s *Server) handleRemoveById(w http.ResponseWriter, r *http.Request)  {
 }
 
 func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
-	// var item *customers.Customer
-	// err := json.NewDecoder(r.Body).Decode(&item)
-	// if err != nil {
-	// 	log.Print(err)
-	// 	http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-	// 	return
-	// }	
-	
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-		return
-	}
-
 	var item *customers.Customer
-	err = json.Unmarshal(b, &item)
+	err := json.NewDecoder(r.Body).Decode(&item)
 	if err != nil {
-		http.Error(w, err.Error(), 500)
+		log.Print(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
-	}
-	item, err = s.customersSvc.Save(r.Context(), item)
+	}	
+	
+	// b, err := ioutil.ReadAll(r.Body)
+	// defer r.Body.Close()
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
+
+	// var item *customers.Customer
+	// err = json.Unmarshal(b, &item)
+	// if err != nil {
+	// 	http.Error(w, err.Error(), 500)
+	// 	return
+	// }
+	item, err = s.customersSvc.Save(r.Context(), item.ID, item.Phone, item.Name)
 
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)

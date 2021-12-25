@@ -109,33 +109,41 @@ func (s *Service) AllActive(ctx context.Context) (cs []*Customer, err error) {
 	return cs, nil
 }
 
-func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, err error)  {
-	item := &Customer{}
-
-	if customer.ID == 0{
-		err = s.pool.QueryRow(ctx, `
-			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING id, name, phone, active, created
-		`, customer.Name, customer.Phone).Scan(
-			&item.ID, 
-			&item.Name, 
-			&item.Phone, 
-			&item.Active, 
-			&item.Created)
+func (s *Service) Save(ctx context.Context, id int64, phone string, name string) (*Customer, error) {
+	result := &Customer{}
+	if id == 0 {
+		err := s.pool.QueryRow(ctx, `
+			INSERT INTO customers (name, phone) VALUES($1, $2) RETURNING id, name, phone, active, created
+		`, name, phone).Scan(&result.ID, &result.Name, &result.Phone, &result.Active, &result.Created)
+		if err != nil {
+			log.Print(err)
+			return nil, ErrInternal
+		}
 	} else {
-		err = s.pool.QueryRow(ctx, `
-			UPDATE customers SET name = $1, phone = $2 WHERE id = $3 RETURNING id, name, phone, active, created
-		`, customer.Name, customer.Phone, customer.ID).Scan(
-			&item.ID, 
-			&item.Name, 
-			&item.Phone, 
-			&item.Active, 
-			&item.Created)
+		_, err := s.ByID(ctx, id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		if err != nil {
+			return nil, ErrInternal
+		}
+		_, err = s.pool.Exec(ctx, `
+			UPDATE customers SET phone = $2, name = $3 WHERE id = $1
+		`, id, phone, name)
+		if err != nil {
+			log.Print(err)
+			return nil, ErrInternal
+		}
+		result, err = s.ByID(ctx, id)
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, ErrNotFound
+		}
+		if err != nil {
+			return nil, ErrInternal
+		}
 	}
-	if err != nil {
-		log.Print(err)
-		return nil, ErrInternal
-	}
-	return item, nil
+
+	return result, nil
 }
 
 func (s *Service) RemoveById(ctx context.Context, id int64) (*Customer,  error) {
