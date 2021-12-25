@@ -260,15 +260,27 @@ func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}	
+
+	if item.Phone == "" && item.Name == ""{
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+
+
+	new := &customers.Customer{
+		ID: item.ID,
+		Name: item.Name,
+		Phone: item.Phone,
+	}
 	
-	item, err = s.customersSvc.Save(r.Context(), item)
+	customer, err := s.customersSvc.Save(r.Context(), new)
 
 	if err != nil {
 		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	data, err := json.Marshal(item)
+	data, err := json.Marshal(customer)
 	if err != nil {
 		log.Print(err)
 		return
