@@ -113,19 +113,21 @@ func (s *Service) AllActive(ctx context.Context) (cs []*Customer, err error) {
 func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, err error)  {
 	item := &Customer{}
 
-	if customer.ID == 0{
+	if customer.ID != 0{
 		err = s.pool.QueryRow(ctx, `
-			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING *
-		`, customer.Name, customer.Phone).Scan(
+			UPDATE customers SET name = $1, phone = $2 WHERE  id = $3 RETURNING *
+		`, customer.Name, customer.Phone, customer.ID).Scan(
 			&item.ID, 
 			&item.Name, 
 			&item.Phone, 
 			&item.Active, 
 			&item.Created)
-	} else {
+		
+	} 
+	if customer.ID == 0 {
 		err = s.pool.QueryRow(ctx, `
-			UPDATE customers SET name = $1, phone = $2 WHERE  id = $3 RETURNING *
-		`, customer.Name, customer.Phone, customer.ID).Scan(
+			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING *
+		`, customer.Name, customer.Phone).Scan(
 			&item.ID, 
 			&item.Name, 
 			&item.Phone, 

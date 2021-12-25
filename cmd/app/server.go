@@ -55,11 +55,16 @@ func (s *Server) Init() {
 
 
 func (s *Server) handleBlockById(w http.ResponseWriter, r *http.Request){
-	idPharm := r.URL.Query().Get("id")
+	//idPharm := r.URL.Query().Get("id")
 
-	id, err := strconv.ParseInt(idPharm, 10, 64)
-	if err != nil {
+	idParam, ok := mux.Vars(r)["id"]
+	if !ok {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil{
+		log.Print(err)
 		return
 	}
 
@@ -87,14 +92,18 @@ func (s *Server) handleBlockById(w http.ResponseWriter, r *http.Request){
 }
 
 func (s *Server) handleUnblockById(w http.ResponseWriter, r *http.Request){
-	idPharm := r.URL.Query().Get("id")
+	//idPharm := r.URL.Query().Get("id")
 
-	id, err := strconv.ParseInt(idPharm, 10, 64)
-	if err != nil {
+	idParam, ok := mux.Vars(r)["id"]
+	if !ok {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
 		return
 	}
-
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil{
+		log.Print(err)
+		return
+	}
 	item, err := s.customersSvc.UnblockById(r.Context(), id)
 	if errors.Is(err, customers.ErrNotFound){
 		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
@@ -238,11 +247,15 @@ func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
 }
 
 func (s *Server) handleRemoveById(w http.ResponseWriter, r *http.Request)  {
-	idPharm := r.URL.Query().Get("id")
-
-	id, err := strconv.ParseInt(idPharm, 10, 64)
-	if err != nil {
+	//idPharm := r.URL.Query().Get("id")
+	idParam, ok := mux.Vars(r)["id"]
+	if !ok {
 		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}
+	id, err := strconv.ParseInt(idParam, 10, 64)
+	if err != nil{
+		log.Print(err)
 		return
 	}
 
