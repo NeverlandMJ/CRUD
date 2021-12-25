@@ -33,9 +33,10 @@ const (
 
 //Init ...
 func (s *Server) Init() {
-	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
+	
 	s.mux.HandleFunc("/customers", s.handleGetAllCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
+	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
 	s.mux.HandleFunc("/customers/{id}/block", s.handleBlockByID).Methods(POST)
 	s.mux.HandleFunc("/customers/{id}/block", s.handleUnBlockByID).Methods(DELETE)
 	s.mux.HandleFunc("/customers/{id}", s.handleDelete).Methods(DELETE)
@@ -56,16 +57,29 @@ func (s *Server) handleGetAllCustomers(w http.ResponseWriter, r *http.Request) {
 }
 
 // хендлер метод для извлечения всех активных клиентов
-func (s *Server) handleGetAllActiveCustomers(w http.ResponseWriter, r *http.Request) {
-
+func (s *Server) handleGetAllActiveCustomers(w http.ResponseWriter, r *http.Request)  {
 	items, err := s.customerSvc.AllActive(r.Context())
+	if errors.Is(err, customers.ErrNotFound){
+		http.Error(w, http.StatusText(http.StatusNotFound), http.StatusNotFound)
+		return
+	}
 	if err != nil {
-		//вызываем фукцию для ответа с ошибкой
-		errorWriter(w, http.StatusInternalServerError, err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+	data, err := json.Marshal(items)
+	if err != nil {
+		log.Print(err)
 		return
 	}
 
-	respondJSON(w, items)
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(data)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+	
 }
 
 func (s *Server) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
