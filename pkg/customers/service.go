@@ -109,37 +109,28 @@ func (s *Service) AllActive(ctx context.Context) (cs []*Customer, err error) {
 	return cs, nil
 }
 
-func (s *Service) Update(ctx context.Context, item *Customer) (*Customer, error) {
-	customer := &Customer{
-		ID:    item.ID,
-		Name:  item.Name,
-		Phone: item.Phone,
-	}
-
-	err := s.pool.QueryRow(ctx, `
-	UPDATE customers SET name =$1,phone=$2 WHERE id =$3 RETURNING active,created
-	`, item.Name, item.Phone, item.ID).Scan(&customer.Active, &customer.Created)
-	if err != nil {
-		log.Print(err)
-		return nil, ErrInternal
-	}
-	return customer, nil
-}
-
-
-
 func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, err error)  {
 	item := &Customer{}
 
-	err = s.pool.QueryRow(ctx, `
-	INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING id, name, phone, active, created
+	if customer.ID == 0{
+		err = s.pool.QueryRow(ctx, `
+			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING *
 		`, customer.Name, customer.Phone).Scan(
 			&item.ID, 
 			&item.Name, 
 			&item.Phone, 
 			&item.Active, 
 			&item.Created)
-	
+	} else {
+		err = s.pool.QueryRow(ctx, `
+			UPDATE customers SET name = $1, phone = $2 WHERE  id = $3 RETURNING *
+		`, customer.Name, customer.Phone, customer.ID).Scan(
+			&item.ID, 
+			&item.Name, 
+			&item.Phone, 
+			&item.Active, 
+			&item.Created)
+	}
 	if err != nil {
 		log.Print(err)
 		return nil, ErrInternal
