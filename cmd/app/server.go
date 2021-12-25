@@ -46,7 +46,9 @@ func (s *Server) Init() {
 	s.mux.HandleFunc("/customers", s.handleGetAllCustomer).Methods(GET)
 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
+	
 	s.mux.HandleFunc("customers", s.handleSaveCustomer).Methods(POST)
+
 	s.mux.HandleFunc("/customers/{id}", s.handleRemoveById).Methods(DELETE)
 	s.mux.HandleFunc("/customers/{id}/block", s.handleUnblockById).Methods(POST)
 	s.mux.HandleFunc("/cutomers/{id}/block", s.handleBlockById).Methods(DELETE)
@@ -216,18 +218,6 @@ func (s *Server) handleGetAllActiveCustomers(w http.ResponseWriter, r *http.Requ
 	
 }
 
-func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
-	var item *customers.Customer
-	err := json.NewDecoder(r.Body).Decode(&item)
-	if err != nil {
-		log.Print(err)
-		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
-		return
-	}	
-	
-	item, err = s.customersSvc.Save(r.Context(), item)
-}
-
 func (s *Server) handleRemoveById(w http.ResponseWriter, r *http.Request)  {
 	//idPharm := r.URL.Query().Get("id")
 	idParam, ok := mux.Vars(r)["id"]
@@ -263,3 +253,34 @@ func (s *Server) handleRemoveById(w http.ResponseWriter, r *http.Request)  {
 		return
 	}
 }
+
+func (s *Server) handleSaveCustomer(w http.ResponseWriter, r *http.Request){
+	var item *customers.Customer
+	err := json.NewDecoder(r.Body).Decode(&item)
+	if err != nil {
+		log.Print(err)
+		http.Error(w, http.StatusText(http.StatusBadRequest), http.StatusBadRequest)
+		return
+	}	
+	
+	item, err = s.customersSvc.Save(r.Context(), item)
+
+	if err != nil {
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
+
+	data, err := json.Marshal(item)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	_, err = w.Write(data)
+	if err != nil {
+		log.Print(err)
+		return
+	}
+}
+
