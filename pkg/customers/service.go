@@ -114,7 +114,7 @@ func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, er
 
 	if customer.ID == 0{
 		err = s.pool.QueryRow(ctx, `
-			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING *
+			INSERT INTO customers(name, phone) VALUES ($1, $2) RETURNING id, name, phone, active, created
 		`, customer.Name, customer.Phone).Scan(
 			&item.ID, 
 			&item.Name, 
@@ -123,7 +123,7 @@ func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, er
 			&item.Created)
 	} else {
 		err = s.pool.QueryRow(ctx, `
-			UPDATE customers SET name = $1, phone = $2 WHERE  id = $3 RETURNING *
+			UPDATE customers SET name = $1, phone = $2 WHERE id = $3 RETURNING id, name, phone, active, created
 		`, customer.Name, customer.Phone, customer.ID).Scan(
 			&item.ID, 
 			&item.Name, 
