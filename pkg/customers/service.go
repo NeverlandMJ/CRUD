@@ -114,7 +114,7 @@ func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, er
 
 	if customer.ID == 0{
 		err = s.pool.QueryRow(ctx, `
-			INSERT INTO customers(id, name, phone) VALUES ($1, $2) RETURNING *
+			INSERT INTO customers(id, name, phone) VALUES ($1, $2, $3) RETURNING *
 		`, customer.ID, customer.Name, customer.Phone).Scan(
 			&item.ID, 
 			&item.Name, 
@@ -138,24 +138,24 @@ func (s *Service) Save(ctx context.Context, customer *Customer) (c *Customer, er
 	return item, nil
 }
 
-func (s *Service) RemoveById(ctx context.Context, id int64) (*Customer,  error) {
-	item := &Customer{}
+// func (s *Service) RemoveById(ctx context.Context, id int64) (*Customer,  error) {
+// 	item := &Customer{}
 
-	err := s.pool.QueryRow(ctx, `
-	  	DELETE customers WHERE id = $1 RETURNING *
-	`, id).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
+// 	err := s.pool.QueryRow(ctx, `
+// 	  	DELETE customers WHERE id = $1 RETURNING *
+// 	`, id).Scan(&item.ID, &item.Name, &item.Phone, &item.Active, &item.Created)
 	
-	if errors.Is(err, pgx.ErrNoRows){
-		return nil, ErrNotFound
-	}
+// 	if errors.Is(err, pgx.ErrNoRows){
+// 		return nil, ErrNotFound
+// 	}
 
-	if err != nil {
-		log.Print(err)
-		return nil, ErrInternal
-	}
+// 	if err != nil {
+// 		log.Print(err)
+// 		return nil, ErrInternal
+// 	}
 
-	return item, nil
-}
+// 	return item, nil
+// }
 
 func (s *Service) BlockById(ctx context.Context, id int64) (*Customer, error) {
 	item := &Customer{}
