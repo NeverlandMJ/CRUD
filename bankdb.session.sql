@@ -1,8 +1,13 @@
-CREATE TABLE managers 
+create table if not exists managers 
 (
-      id BIGSERIAL PRIMARY KEY,
-      name TEXT NOT NULL,
-      salary INTEGER NOT NULL CHECK (salary > 0),
-      plan INTEGER NOT NULL CHECK (plan > 0),
-      boss_id BIGINIT REFERENCES mana
+    id bigserial primary key,
+    name	text not null,
+    salary integer not null default 0,
+    plan    integer not null default 0,
+    boss_id bigint references managers,
+    departament text,
+    login 	text 	,
+    password text ,
+    active 	boolean not null default true,
+    created timestamp not null default current_timestamp 
 );

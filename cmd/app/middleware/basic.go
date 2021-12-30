@@ -1,62 +1,39 @@
 package middleware
 
 import (
-	"encoding/base64"
-	"errors"
 	"log"
 	"net/http"
-	"strings"
 )
 
 func Logger(handler http.Handler) http.Handler {
 	// middleware wraps a Handler, returning a new Handler
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request){
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		//before handler execution
 		log.Printf("START: %s %s", r.Method, r.URL.Path)
 
 		// handler execution
 		handler.ServeHTTP(w, r)
 
-		// after handler execution 
+		// after handler execution
 		log.Printf("FINISH: %s %s", r.Method, r.URL.Path)
 	})
 }
 
 //Basic...
-func Basic(checkAuth func(string, string) bool) func(handler http.Handler) http.Handler {
+func Basic(auth func(login, pass string) bool) func(handler http.Handler) http.Handler {
 	return func(handler http.Handler) http.Handler {
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			w.Header().Set("WWW-Authenticate", `Basic realm="Restricted"`)
-			// extract username and password
-			login, password, err := getLogPass(*r)
-			if err != nil {
-				http.Error(w, http.StatusText(http.StatusUnauthorized),http.StatusUnauthorized)
+		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
+			username, password, ok := request.BasicAuth()
+			if !ok {
+				log.Print("Can't parse username and password")
+				http.Error(writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return
 			}
-
-			if !checkAuth(login, password) {
-				http.Error(w, http.StatusText(http.StatusUnauthorized),http.StatusUnauthorized)
+			if !auth(username, password) {
+				http.Error(writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
 				return
 			}
-
-			handler.ServeHTTP(w, r)
+			handler.ServeHTTP(writer, request)
 		})
 	}
-}
-
-//func that extracts data from the request and returns the login and password
-func getLogPass(r http.Request) (string, string, error) {
-	s := strings.SplitN(r.Header.Get("Authorization"), " ", 2)
-			if len(s) != 2 {
-				return "","",errors.New("invalid auth method")
-			}
-			b, err := base64.StdEncoding.DecodeString(s[1])
-			if err != nil {
-				return "","",errors.New("invalid auth method")
-			}
-			pair := strings.SplitN(string(b), ":", 2)
-			if len(pair) != 2 {
-				return "","",errors.New("invalid auth method")
-			}
-			return pair[0],pair[1],nil
 }

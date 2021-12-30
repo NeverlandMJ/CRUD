@@ -37,7 +37,7 @@ const (
 //Init ...
 func (s *Server) Init() {
 	s.mux.Use(middleware.Basic(s.securitySvc.Auth))
-	s.mux.Use(middleware.Logger)
+	
 	s.mux.HandleFunc("/customers", s.handleGetAllCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
