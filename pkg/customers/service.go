@@ -80,28 +80,32 @@ func (s *Service) TokenForCustomer(
 	return token, nil
 }
 
-func (s *Service) SaveCustomer(ctx context.Context, item *Customer) (*Customer, error){
-	if item.ID == 0{
+// SaveCustomer save customer with pass from JSON
+func (s *Service) SaveCustomer(ctx context.Context, item *Customer) (*Customer, error) {
+
+	if item.ID == 0 {
+
 		hash, err := bcrypt.GenerateFromPassword([]byte(item.Password), bcrypt.DefaultCost)
 		if err != nil {
 			log.Print(err)
 			return nil, ErrInternal
 		}
 		log.Print(hex.EncodeToString(hash))
+
 		res := &Customer{}
 		err = s.pool.QueryRow(ctx, `
-			insert into customers(name, phone, password) values($1, $2, $3)
-			returning id, name, phone, password, active, created
-		`, item.Name, item.Phone, hash).Scan(
-			&res.ID,
-			&res.Name,
-			&res.Phone,
-			&res.Password,
-			&res.Active,
-			&res.Created,
-		)
+				INSERT INTO customers(name, phone, password) VALUES ($1, $2, $3)
+				RETURNING id, name, phone, password, active, created
+			`, item.Name, item.Phone, hash).Scan(&res.ID, &res.Name, &res.Phone, &res.Password, &res.Active, &res.Created)
+
+		if err != nil {
+			log.Print(err)
+			return nil, ErrInternal
+		}
+		return res, nil
 	}
 
+	
 	return nil, ErrInternal
 }
 

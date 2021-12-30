@@ -64,22 +64,20 @@ func (s *Service) Auth(login, password string) (ok bool) {
 	return false
 }
 
+// AuthenticateCusomer ...
 func (s *Service) AuthenticateCusomer(
-	ctx context.Context, 
+	ctx context.Context,
 	token string,
-) (id int64, err error){
+) (id int64, err error) {
+
 	expiredTime := time.Now()
 	nowTimeInSec := expiredTime.UnixNano()
-	err = s.pool.QueryRow(ctx, `
-		select customer_id from customers_tokens where token = $1
-	`, token).Scan(&id)
-	if err == pgx.ErrNoRows{
+	err = s.pool.QueryRow(ctx, `SELECT customer_id, expire FROM customers_tokens WHERE token = $1`, token).Scan(&id, &expiredTime)
+	if err != nil {
+		log.Print(err)
 		return 0, ErrNoSuchUser
 	}
 
-	if err != nil {
-		return 0, ErrInternal
-	}
 	if nowTimeInSec > expiredTime.UnixNano() {
 		return -1, ErrExpired
 	}
