@@ -5,19 +5,19 @@ import (
 	"net/http"
 )
 
-func Logger(handler http.Handler) http.Handler {
-	// middleware wraps a Handler, returning a new Handler
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		//before handler execution
-		log.Printf("START: %s %s", r.Method, r.URL.Path)
+// func Logger(handler http.Handler) http.Handler {
+// 	// middleware wraps a Handler, returning a new Handler
+// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+// 		//before handler execution
+// 		log.Printf("START: %s %s", r.Method, r.URL.Path)
 
-		// handler execution
-		handler.ServeHTTP(w, r)
+// 		// handler execution
+// 		handler.ServeHTTP(w, r)
 
-		// after handler execution
-		log.Printf("FINISH: %s %s", r.Method, r.URL.Path)
-	})
-}
+// 		// after handler execution
+// 		log.Printf("FINISH: %s %s", r.Method, r.URL.Path)
+// 	})
+// }
 
 //Basic...
 func Basic(auth func(login, pass string) bool) func(handler http.Handler) http.Handler {

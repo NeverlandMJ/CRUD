@@ -20,8 +20,8 @@ type Server struct {
 	customerSvc 	*customers.Service
 	securitySvc		*security.Service
 }
-func NewServer (mux *mux.Router, customerSvc *customers.Service) *Server {
-	return &Server{mux: mux, customerSvc: customerSvc}
+func NewServer (mux *mux.Router, customerSvc *customers.Service, security *security.Service) *Server {
+	return &Server{mux: mux, customerSvc: customerSvc, securitySvc: security}
 }
 
 func (s *Server) ServeHTTP(writer http.ResponseWriter, request *http.Request){
