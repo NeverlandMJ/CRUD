@@ -61,7 +61,8 @@ func (s *Server) Init() {
 	s.mux.Use(middleware.Basic(s.securitySvc.Auth))
 	
 	s.mux.HandleFunc("/api/customers", s.saveCustomers).Methods(POST)
-	
+	s.mux.HandleFunc("/api/customers/token", s.handleGetToken).Methods(POST)
+	s.mux.HandleFunc("/api/customers/token/validate", s.handleValidateToken).Methods(POST)
 
 	s.mux.HandleFunc("/customers", s.handleGetAllCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)

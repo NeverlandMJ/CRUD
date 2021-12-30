@@ -25,12 +25,12 @@ func Basic(auth func(login, pass string) bool) func(handler http.Handler) http.H
 		return http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 			username, password, ok := request.BasicAuth()
 			if !ok {
-				log.Print("Can't parse username and password")
-				http.Error(writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				log.Print("Cant parse username and password")
+				http.Error(writer, http.StatusText(401), 401)
 				return
 			}
 			if !auth(username, password) {
-				http.Error(writer, http.StatusText(http.StatusUnauthorized), http.StatusUnauthorized)
+				http.Error(writer, http.StatusText(401), 401)
 				return
 			}
 			handler.ServeHTTP(writer, request)
