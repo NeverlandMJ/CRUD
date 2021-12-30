@@ -11,6 +11,7 @@ import (
 
 	"github.com/NeverlandMJ/CRUD/cmd/app"
 	"github.com/NeverlandMJ/CRUD/pkg/customers"
+	"github.com/NeverlandMJ/CRUD/pkg/security"
 	"github.com/gorilla/mux"
 	"github.com/jackc/pgx/v4/pgxpool"
 	_ "github.com/jackc/pgx/v4/stdlib"
@@ -37,7 +38,7 @@ func execute(host, port, dsn string) (err error){
 			return pgxpool.Connect(ctx, dsn)
 		},
 		customers.NewService,
-		
+		security.NewService,
 		func(server *app.Server) *http.Server{
 			return &http.Server{
 				Addr: net.JoinHostPort(host, port),
