@@ -3,20 +3,23 @@ package app
 import (
 	"encoding/json"
 	"errors"
+
 	//"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/NeverlandMJ/CRUD/cmd/app/middleware"
 	"github.com/NeverlandMJ/CRUD/pkg/customers"
+	"github.com/NeverlandMJ/CRUD/pkg/security"
 	"github.com/gorilla/mux"
 )
 
 type Server struct {
 	mux 			*mux.Router
 	customerSvc 	*customers.Service
+	securitySvc		*security.Service
 }
-
 func NewServer (mux *mux.Router, customerSvc *customers.Service) *Server {
 	return &Server{mux: mux, customerSvc: customerSvc}
 }
@@ -33,7 +36,8 @@ const (
 
 //Init ...
 func (s *Server) Init() {
-	
+	s.mux.Use(middleware.Basic(s.securitySvc.Auth))
+	s.mux.Use(middleware.Logger)
 	s.mux.HandleFunc("/customers", s.handleGetAllCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/active", s.handleGetAllActiveCustomers).Methods(GET)
 	s.mux.HandleFunc("/customers/{id}", s.handleGetCustomerByID).Methods(GET)
@@ -42,6 +46,9 @@ func (s *Server) Init() {
 	s.mux.HandleFunc("/customers/{id}", s.handleDelete).Methods(DELETE)
 	s.mux.HandleFunc("/customers", s.handleSave).Methods(POST)
 }
+
+
+
 
 // хендлер метод для извлечения всех клиентов
 func (s *Server) handleGetAllCustomers(w http.ResponseWriter, r *http.Request) {
