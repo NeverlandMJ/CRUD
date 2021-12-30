@@ -34,7 +34,7 @@ func (s *Service) Auth(login, password string) (ok bool) {
 	ctx := context.Background()
 	temPass := ""
 	err := s.pool.QueryRow(ctx, `
-	select password from managers where login $1
+	select password from managers where login = $1
 	`, login).Scan(&temPass)
 	if errors.Is(err, pgx.ErrNoRows) {
 		return false
